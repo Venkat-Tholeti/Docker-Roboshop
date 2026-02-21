@@ -1,7 +1,7 @@
 
 # Multi stage builds are like keeping multiple Dockerfiles in a single Dockerfile, one Dockerfile we can use it as builder, another Dockerfile we can use it as final image, we can copy what we want from builder to final image. this reduces memory and then unnecessary installations
 
-FROM node:20-alpine3.21 as builder
+FROM node:20-alpine3.21 AS builder
 WORKDIR /opt/server
 COPY package.json .
 COPY *.js .
