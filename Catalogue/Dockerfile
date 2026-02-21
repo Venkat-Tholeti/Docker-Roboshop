@@ -4,7 +4,7 @@
 FROM node:20-alpine3.21 as builder
 WORKDIR /opt/server
 COPY package.json .
-COPY *.js  .
+COPY *.js .
 RUN npm install
 #THIS WILL BE DELETED AUTOMATICALLY WHILE FINAL IMAGE IS CREATED
 
