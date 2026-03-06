@@ -1,5 +1,5 @@
-uwsgi
 Flask
+uwsgi
 requests
 pika
 prometheus_client
