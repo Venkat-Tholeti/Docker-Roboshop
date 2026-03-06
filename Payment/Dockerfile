@@ -35,49 +35,30 @@
 # CMD ["uwsgi", "--ini", "payment.ini"]
 
 
-# Stage 1: Build - CORRECT ORDER
-FROM python:3.9-slim AS builder
-WORKDIR /build
-
-# Copy requirements FIRST
-COPY requirements.txt .
-
-# Minimal build deps + IMMEDIATE cleanup
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        gcc \
-        libc6-dev \
-    && pip install --no-cache-dir --user -r requirements.txt \
-    && apt-get purge -y gcc libc6-dev \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache
-
-# Package up installed Python modules
-RUN mkdir -p /install \
-    && cp -r /root/.local /install/ 2>/dev/null || true \
-    && find /usr/local -name '*.so' -exec cp {} /install/ \; 2>/dev/null || true
-
-# Stage 2: Final image
 FROM python:3.9-slim
-EXPOSE 8080
 WORKDIR /opt/server
 
-# Ultra-minimal - no extra runtime deps needed
-RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install runtime deps only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpcre2-8-0 && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 
-# Create non-root user
-RUN groupadd -r roboshopgroup && useradd -r -g roboshopgroup roboshop
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-USER roboshop
-# Copy Python packages
-COPY --chown=roboshop:roboshopgroup --from=builder /install /tmp/install
-RUN cp -r /tmp/install/* /usr/local/ 2>/dev/null || true && rm -rf /tmp/install
+# Create non-root user WITH FIXED numeric IDs
+RUN groupadd -r -g 1001 roboshopgroup && \
+    useradd -r -u 1001 -g roboshopgroup roboshop
 
-# Copy app
-COPY --chown=roboshop:roboshopgroup payment.ini .
-COPY --chown=roboshop:roboshopgroup *.py .
+# Copy files as non-root user
+COPY --chown=1001:1001 payment.ini *.py ./
 
+# Switch to non-root BEFORE runtime
+USER 1001:1001
+EXPOSE 8080
 CMD ["uwsgi", "--ini", "payment.ini"]
+
 
 
 
