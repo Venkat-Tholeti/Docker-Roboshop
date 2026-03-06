@@ -42,7 +42,7 @@ WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     build-essential \
-    libpcre3-dev \
+    libpcre2-dev \
     && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir --prefix=/install -r requirements.txt
@@ -53,7 +53,7 @@ EXPOSE 8080
 WORKDIR /opt/server
 # Runtime dependencies only
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpcre3 \
+    libpcre2-8-0 \
     && rm -rf /var/lib/apt/lists/*
 # Create app user
 RUN groupadd -r roboshopgroup && useradd -r -g roboshopgroup roboshop
