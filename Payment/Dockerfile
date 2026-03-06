@@ -38,29 +38,27 @@
 FROM python:3.9-slim
 WORKDIR /opt/server
 
-# Install build + runtime deps, clean immediately after pip
+# COPY requirements FIRST
+COPY requirements.txt .
+
+# Install build deps THEN pip THEN clean
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libc6-dev \
-    libpcre2-dev \
-    libpcre2-8-0 && \
+    gcc libc6-dev libpcre2-dev && \
     pip install --no-cache-dir -r requirements.txt && \
-    apt-get purge -y --auto-remove \
-    gcc \
-    libc6-dev \
-    libpcre2-dev && \
+    apt-get purge -y --auto-remove gcc libc6-dev libpcre2-dev && \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache
 
-# Create non-root user WITH FIXED numeric IDs
+# Create non-root user
 RUN groupadd -r -g 1001 roboshopgroup && \
     useradd -r -u 1001 -g roboshopgroup roboshop
 
-# Copy files as non-root user
+# Copy app files as non-root user
 COPY --chown=1001:1001 payment.ini *.py ./
 
 USER 1001:1001
 EXPOSE 8080
 CMD ["uwsgi", "--ini", "payment.ini"]
+
 
 
 
