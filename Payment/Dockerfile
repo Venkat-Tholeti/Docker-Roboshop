@@ -32,4 +32,5 @@ COPY --from=builder /install /usr/local
 # Copy application code
 COPY --chown=roboshop:roboshopgroup payment.ini .
 COPY --chown=roboshop:roboshopgroup *.py .
+
 CMD ["uwsgi", "--ini", "payment.ini"]
