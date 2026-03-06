@@ -35,45 +35,46 @@
 # CMD ["uwsgi", "--ini", "payment.ini"]
 
 
-# Stage 1: Build - Minimal dependencies only
+# Stage 1: Ultra-minimal build (no build-essential)
 FROM python:3.9-slim AS builder
 WORKDIR /build
 
-# Clean apt cache first, install minimal deps, clean immediately
+# Pre-clean + minimal deps only + immediate cleanup
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc \
-        g++ \
-        python3-dev \
-        libpcre2-dev \
-    && pip3 install --no-cache-dir --prefix=/install uwsgi \
-    && apt-get purge -y --auto-remove gcc g++ python3-dev libpcre2-dev \
+        libc6-dev \
+    && pip install --no-cache-dir --user uwsgi \
+    && apt-get purge -y gcc libc6-dev \
     && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && pip install --user --no-cache-dir -r requirements.txt
 
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir --prefix=/install -r requirements.txt
+# Extract just the installed packages
+RUN mkdir /install \
+    && cp -r /root/.local/* /install/ \
+    && rm -rf /root/.local
 
-# Stage 2: Final image - Ultra minimal
+# Stage 2: Final runtime image
 FROM python:3.9-slim
 EXPOSE 8080
 WORKDIR /opt/server
 
-# No runtime PCRE needed - uWSGI statically links or uses system libs
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        libpcre2-8-0 \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean \
-    && rm -rf /tmp/* /var/tmp/*
+# Minimal runtime only (no dev packages)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Create non-root user
+# Non-root user
 RUN groupadd -r roboshopgroup && useradd -r -g roboshopgroup roboshop
 
 USER roboshop
-COPY --from=builder --chown=roboshop:roboshopgroup /install /usr/local
+COPY --chown=roboshop:roboshopgroup --from=builder /install /usr/local/lib/python3.9/site-packages
+ENV PATH="/usr/local/lib/python3.9/site-packages/bin:${PATH}"
+
 COPY --chown=roboshop:roboshopgroup payment.ini .
 COPY --chown=roboshop:roboshopgroup *.py .
 
 CMD ["uwsgi", "--ini", "payment.ini"]
+
 
