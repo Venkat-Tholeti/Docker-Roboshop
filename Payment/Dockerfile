@@ -38,45 +38,24 @@
 FROM python:3.9-slim
 WORKDIR /opt/server
 
-# 1. Copy requirements FIRST
 COPY requirements.txt .
-
-# 2. Install FULL build environment
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    gcc \
-    g++ \
-    libc6-dev \
-    libpcre2-dev \
-    pkg-config
-
-# 3. Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
-
-# 4. Clean build deps
-RUN apt-get purge -y --auto-remove \
-    build-essential python3-dev gcc g++ libc6-dev libpcre2-dev pkg-config && \
-    apt-get clean && \
+    build-essential python3-dev gcc g++ libc6-dev libpcre2-dev && \
+    pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    apt-get purge -y --auto-remove build-essential python3-dev gcc g++ libc6-dev libpcre2-dev && \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache
 
-# 5. Create non-root user
 RUN groupadd -r -g 1001 roboshopgroup && \
-    useradd -r --uid 1001 -g roboshopgroup roboshop
+    useradd -r -u 1001 -g roboshopgroup roboshop
 
-# 6. Switch to root for permissions
-USER root
-RUN chown -R 1001:1001 /opt/server
-
-# 7. Copy app files
-COPY --chown=1001:1001 payment.ini *.py ./
-
-# 8. Run as non-root
+COPY --chown=1001:1001 *.py ./
 USER 1001:1001
 EXPOSE 8080
 
-# 9. DIRECT CMD - NO INI FILE!
-CMD ["uwsgi", "--http", ":8080", "--wsgi-file", "payment.py", "--callable", "app", "--processes", "4", "--master", "--enable-threads"]
+# CMD OVERRIDES payment.ini COMPLETELY
+CMD ["uwsgi", "--http=:8080", "--wsgi-file=payment.py", "--callable=app", "--master", "--processes=4", "--enable-threads"]
+
 
 
 
