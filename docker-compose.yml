@@ -71,4 +71,11 @@ services:
    frontend:
           image: venkattholeti/frontend:v1
           container_name: frontend
-          
+          ports:
+            - "80:80"
+          depends_on:
+            - catalogue
+            - user
+            - cart
+            - payment
+            - shipping
