@@ -12,13 +12,13 @@ services:
    
    catalogue:
       image: venkattholeti/catalogue:v1
-      conatainer_name: catalogue
+      container_name: catalogue
       depends_on:
        - mongodb
 
    redis:
       image: venkattholeti/redis:v1
-      conatainer_name: redis
+      container_name: redis
 
    user:
       image: venkattholeti/user:v1
