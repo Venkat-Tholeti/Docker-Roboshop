@@ -56,7 +56,6 @@ services:
           image: venkattholeti/payment:v1
           container_name: payment
           environment:
-              environment:
                 CART_HOST: cart
                 CART_PORT: 8080
                 USER_HOST: user
