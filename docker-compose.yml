@@ -1,0 +1,49 @@
+
+networks:
+  default:
+     driver: bridge
+     name: roboshop
+     external: true # I Created network outside manually using create network so i have given it here like this
+     # if we did not create it manually, here comment external and it will automatically create the new network
+services:
+   mongodb:
+      image: venkattholeti/mongodb:v1
+      container_name: mongodb
+   
+   catalogue:
+      image: venkattholeti/catalogue:v1
+      conatainer_name: catalogue
+      depends_on:
+       - mongodb
+
+   redis:
+      image: venkattholeti/redis:v1
+      conatainer_name: redis
+
+   user:
+      image: venkattholeti/user:v1
+      container_name: user
+      depends_on:
+        - redis
+        - mongodb
+
+   cart:
+       image: venkattholeti/cart:v1
+       container_name: cart
+       depends_on:
+         - catalogue
+         - redis
+
+   mysql:
+        image: venkattholeti/mysql:v1
+        container_name: mysql
+    
+   shipping:
+        image: venkaktholeti/shipping:v1
+        container_name: shipping
+        depends_on:
+           - mysql
+           - cart
+
+
+      
