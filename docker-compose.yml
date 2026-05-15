@@ -45,5 +45,27 @@ services:
            - mysql
            - cart
 
+   rabbitmq:
+         image: venkattholeti/rabbitmq:v1
+         container_name: rabbitmq
+         environment:
+            RABBITMQ_DEFAULT_USER: roboshop
+            RABBITMQ_DEFAULT_PASS: roboshop123
 
+   payment:
+          image: venkattholeti/payment:v1
+          container_name: payment
+          environment:
+              environment:
+                CART_HOST: cart
+                CART_PORT: 8080
+                USER_HOST: user
+                USER_PORT: 8080
+                AMQP_HOST: rabbitmq
+                AMQP_USER: roboshop
+                AMQP_PASS: roboshop123
+          depends_on:
+          - rabbitmq
+          - cart
+          - user
       
