@@ -68,3 +68,7 @@ services:
           - cart
           - user
       
+   frontend:
+          image: venkattholeti/frontend:v1
+          container_name: frontend
+          
