@@ -39,7 +39,7 @@ services:
         container_name: mysql
     
    shipping:
-        image: venkaktholeti/shipping:v1
+        image: venkattholeti/shipping:v1
         container_name: shipping
         depends_on:
            - mysql
